@@ -100,6 +100,9 @@ class Experiment:
                                                          self.config['experiment']['name']))
                 print('*' * 50)
 
+                if self.config['experiment']['deterministic_mode']:
+                    torch.manual_seed(0)
+
                 model = self._create_model_and_normalizer(hyperparams)
 
                 log, eval_results, weights, example_predictions = solver.train(model, hyperparams)

@@ -18,16 +18,17 @@ from data_utils import augmenters
 # Base configuration
 
 experiment_config = {
-    'name': 'hands17sc_mlp_nonorm_nodist_breadth_2',
+    'name': 'hands17sc_mlp_nonorm_nodist_refine_1',
     'train_set': 'HANDS17_DPREN_SubjClust_train',
     'val_set': 'HANDS17_DPREN_SubjClust_val',
     'train_set_size': None,
     'val_set_size': None,
     'use_preset': True,
     'normalizer': None,
-    'target_device': torch.device('cuda:9'),
+    'target_device': torch.device('cuda:8'),
     'n_repetitions': 2,
-    'init_weights_path': None
+    'init_weights_path': None,
+    'deterministic_mode': True
 }
 
 solver_config = {
@@ -36,8 +37,8 @@ solver_config = {
         'log_grad': False,
         'verbose': False,
         'show_plots': False,
-        'num_epochs': 100,
-        'batch_size': 4096,
+        'num_epochs': 30,
+        'batch_size': 1024,
         'interest_keys': [],
         'val_example_indices': [0],
         'val_example_subset': 'DEFAULT'
@@ -55,8 +56,8 @@ base_hyperparams = {
     'optimizer_args': {
         'betas': [0.9, 0.999],
         'eps': 1e-08,
-        'lr': 5e-4,
-        'weight_decay': 1e-4
+        'lr': 5e-5,
+        'weight_decay': 2e-4
     },
     'scheduler': torch.optim.lr_scheduler.ReduceLROnPlateau,
     'scheduler_requires_metric': True,
@@ -68,8 +69,8 @@ base_hyperparams = {
     },
     'distorter': distorters.NoDistorter,
     'distorter_args': {
-        'source_name': 'HANDS17_DPREN_train_nonorm',
-        'knn_name': 'HANDS17_DPREN_train_labels_noshift_16',
+        'source_name': 'HANDS17_DPREN_SubjClust_train',
+        'knn_name': 'HANDS17_DPREN_SubjClust_train_labels_shift_16',
         'strength_alpha': -4.0,
         'strength_loc': 0.85,
         'strength_scale': 0.01,
@@ -87,7 +88,7 @@ mlp_base_args = {
     'hidden_dims': [1024, 1024, 1024],
     'activation_func': nn.LeakyReLU(0.1),
     'batchnorm': False,
-    'dropout': 0.0
+    'dropout': 0.2
 }
 
 base_hyperparams['model_args'] = mlp_base_args
@@ -96,11 +97,11 @@ base_hyperparams['model_args'] = mlp_base_args
 
 # Specify options for a hyperparameter grid search
 
-learning_rates = [5e-4, 7e-4]
-weight_decays = [1e-4, 2e-4]
+#learning_rates = [5e-4, 7e-4]
+#weight_decays = [1e-4, 2e-4]
 #hidden_dims = [[1400, 1400], [1024, 1024, 1024]]
-dropouts = [None, 0.2]
-batchnorms = [True, False]
+dropouts = [0.1, 0.2, 0.3]
+#batchnorms = [True, False]
 
 # distorter_args = [
 #     {
@@ -146,9 +147,7 @@ batchnorms = [True, False]
 #dist_source_names = ['MSRA15_3DCNN_all_nonorm', 'HANDS17_DPREN_ShapeSplit_train_nonorm']
 #dist_strength_locs = [0.85, 1.0]
 #dist_strength_scales = [0.01, 0.1]
-#dist_max_k = [2, 3]
-#batchnorms = [True, False]
-#dropouts = [0.2]
+#dist_max_k = [2, 3, 4]
 # augmenters_list = [[augmenters.RandomInterpolator(-8.0, 1.1, 0.4)],
 #                    [augmenters.RandomInterpolator(-16.0, 1.0, 0.3)]]
 
@@ -164,14 +163,14 @@ experiment = Experiment(experiment_config, solver_config, base_hyperparams)
 
 #experiment.add_options(('model_args', 'hidden_dims'), hidden_dims)
 #experiment.add_options(('model_args', 'activation_func'), activation_funcs)
-experiment.add_options(('optimizer_args', 'lr'), learning_rates)
-experiment.add_options(('optimizer_args', 'weight_decay'), weight_decays)
+#experiment.add_options(('optimizer_args', 'lr'), learning_rates)
+#experiment.add_options(('optimizer_args', 'weight_decay'), weight_decays)
 #experiment.add_options((None, 'loss_function'), loss_functions)
 #experiment.add_options((None, 'distorter_args'), distorter_args)
 #experiment.add_options((None, 'distorter'), distorterss)
 #experiment.add_options((None, 'loss_space'), loss_spaces)
 experiment.add_options(('model_args', 'dropout'), dropouts)
-experiment.add_options(('model_args', 'batchnorm'), batchnorms)
+#experiment.add_options(('model_args', 'batchnorm'), batchnorms)
 #experiment.add_options(('distorter_args', 'source_name'), dist_source_names)
 #experiment.add_options(('distorter_args', 'strength_loc'), dist_strength_locs)
 #experiment.add_options(('distorter_args', 'strength_scale'), dist_strength_scales)

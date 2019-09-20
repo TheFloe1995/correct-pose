@@ -44,6 +44,9 @@ options. See one of the existing training scripts for an example and some furthe
 * **n_repetitions**: `int` >= 1: how often each training session should be repeated (without 
     changing any parameters) 
 * **init_weights_path**: Path to a file with weights if training is continued.
+* **deterministic_mode**: `bool`, whether to set a seed at the beginning of each training session
+                           in order to make the sampling of batches deterministic
+
 
 ### Solver Configuration:
 * **log_frequency**: `int`, how often to write intermediate validation results to log per epoch
