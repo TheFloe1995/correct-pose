@@ -9,7 +9,8 @@ It's a PyTorch implementation, tested with version PyTorch 1.10 and Python 3.7.
 ## How to get started
 Training scripts are located in [run](run). Make sure to have the datasets available in the
 required format in [data](data). Mor details and scripts for generating data are located in 
-[data_utils](data_utils). 
+[data_utils](data_utils). Try to run the [minimal example script](run/minimal_example.py)
+first and check it out in detail.
 
 To make sure everything is working on your machine I recommend to run the unit tests in 
 [unit_tests](unit_tests) using *pytest*.

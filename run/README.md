@@ -2,7 +2,8 @@
 Directory for scripts to run trainings, to test models or whatever. Only place runnable scripts,
 no packages.
 
-Run with working directory set to repository root.
+Run with working directory set to repository root. Have a look at the 
+[example script](minimal_example.py) for reference.
 
 In order to minimize the amount of parameters that have to be changed manually every time a new 
 experiment is started, it's recommended to maintain separate run files for general training 
