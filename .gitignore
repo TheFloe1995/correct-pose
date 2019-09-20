@@ -1,0 +1,9 @@
+*.npy
+.idea
+__pycache__
+.ipynb_checkpoints
+results
+data
+DEBUG
+models
+sync_servers.sh
