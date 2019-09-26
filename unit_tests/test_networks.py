@@ -33,7 +33,8 @@ def test_pose_corrector_gnn():
         'message_module': modules.MessageMLP,
         'message_passing_dims': [10, 10],
         'decoder': modules.Fully1x1ConvCoder,
-        'decoder_dims': [6, 7]
+        'decoder_dims': [6, 7],
+        'dropout': 0.0
     }
 
     config_2 = {
@@ -45,7 +46,8 @@ def test_pose_corrector_gnn():
         'message_module': modules.MessageMLP,
         'message_passing_dims': [20, 20],
         'decoder': modules.StructuredMLPCoder,
-        'decoder_dims': [16, 8]
+        'decoder_dims': [16, 8],
+        'dropout': 0.1
     }
 
     models = [PoseCorrectorGNNv1(config_1), PoseCorrectorGNNv1(config_2)]

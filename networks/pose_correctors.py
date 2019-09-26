@@ -66,7 +66,8 @@ class BasePoseCorrectorGNN(BaseNet, ABC):
         self.encoder = config['encoder'](3, config['latent_dim'], config['encoder_dims'])
         self.message_passing = config['message_passing'](config['latent_dim'],
                                                          config['message_module'],
-                                                         config['message_passing_dims'])
+                                                         config['message_passing_dims'],
+                                                         config['dropout'])
         self.decoder = config['decoder'](config['latent_dim'], 3, config['decoder_dims'])
 
     @abstractmethod

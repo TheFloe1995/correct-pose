@@ -24,7 +24,7 @@ class RandomScaler(BaseAugmenter):
         self.scale_sampler = torch_dist.Normal(1.0, scale_std)
 
     def augment(self, batch):
-        scaling_factors = self.scale_sampler.sample((len(batch), 1, 1))
+        scaling_factors = self.scale_sampler.sample((len(batch), 1, 1)).to(batch.device)
 
         centered_poses, centered_labels, pose_shifts, label_shifts = self._center_batch(batch)
         centered_poses *= scaling_factors

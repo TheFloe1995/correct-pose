@@ -115,7 +115,7 @@ class FullyFingerConvCoder(nn.Module):
 # all neighboring nodes. The feature vectors are concatenated and passed to externally defined
 # message modules.
 class MessagePassing(nn.Module):
-    def __init__(self, latent_dim, message_module, message_module_dims):
+    def __init__(self, latent_dim, message_module, message_module_dims, dropout):
         super(MessagePassing, self).__init__()
 
         self.nodes = nn.ModuleDict({
@@ -153,6 +153,8 @@ class MessagePassing(nn.Module):
         # contains the neighbors of the wrist joint as well.
         self.neighbor_indices = self._generate_neighbor_indices()
 
+        self.dropout = nn.Dropout(dropout)
+
     def forward(self, x):
         result = torch.zeros_like(x)
 
@@ -175,11 +177,11 @@ class MessagePassing(nn.Module):
         # MCP joints
         neighbor_indices['thumb'].append(self.idx_map['thumb'][:3] + [self.idx_map['index'][1]])
         neighbor_indices['index'].append(self.idx_map['index'][:3] + [self.idx_map['thumb'][1],
-                                                                    self.idx_map['middle'][1]])
+                                                                      self.idx_map['middle'][1]])
         neighbor_indices['middle'].append(self.idx_map['middle'][:3] + [self.idx_map['index'][1],
-                                                                      self.idx_map['ring'][1]])
+                                                                        self.idx_map['ring'][1]])
         neighbor_indices['ring'].append(self.idx_map['ring'][:3] + [self.idx_map['middle'][1],
-                                                                  self.idx_map['pinky'][1]])
+                                                                    self.idx_map['pinky'][1]])
         neighbor_indices['pinky'].append(self.idx_map['pinky'][:3] + [self.idx_map['ring'][1]])
 
         for finger_name in self.idx_map.keys():
@@ -189,9 +191,9 @@ class MessagePassing(nn.Module):
 
         return neighbor_indices
 
-    @staticmethod
-    def _calc_message(x, message_module, indices):
+    def _calc_message(self, x, message_module, indices):
         message_input = torch.cat([x[:, i] for i in indices], dim=1)
+        message_input = self.dropout(message_input)
         return message_module(message_input)
 
 

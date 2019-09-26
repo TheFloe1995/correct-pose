@@ -159,7 +159,7 @@ class ViewPointNormalizer(BaseNormalizer):
         centered_poses = poses + shifts
         plain_aligned_poses_t = torch.bmm(plane_alignment_rot_mats, centered_poses.transpose(1, 2))
 
-        x_directions_2d = plain_aligned_poses_t[:, :2, 2:5].mean(dim=2)
+        x_directions_2d = plain_aligned_poses_t[:, :2, 2:6].mean(dim=2)
         inplane_rot_mats = cls._compute_inplane_rot_mat(x_directions_2d)
 
         rotated_poses = torch.bmm(inplane_rot_mats, plain_aligned_poses_t).transpose(1, 2)
