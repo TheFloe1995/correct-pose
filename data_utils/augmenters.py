@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import torch
+import torch.distributions as torch_dist
 import scipy.stats
 
 
@@ -7,6 +8,30 @@ class BaseAugmenter(ABC):
     @abstractmethod
     def augment(self, batch):
         pass
+
+    @staticmethod
+    def _center_batch(batch):
+        pose_shifts = batch.poses.mean(dim=1).view(-1, 1, 3)
+        label_shifts = batch.labels.mean(dim=1).view(-1, 1, 3)
+        centered_poses = batch.poses - pose_shifts
+        centered_labels = batch.labels - label_shifts
+        return centered_poses, centered_labels, pose_shifts, label_shifts
+
+
+# Randomly scales pose and label in place by the same factor
+class RandomScaler(BaseAugmenter):
+    def __init__(self, scale_std):
+        self.scale_sampler = torch_dist.Normal(1.0, scale_std)
+
+    def augment(self, batch):
+        scaling_factors = self.scale_sampler.sample((len(batch), 1, 1))
+
+        centered_poses, centered_labels, pose_shifts, label_shifts = self._center_batch(batch)
+        centered_poses *= scaling_factors
+        centered_labels *= scaling_factors
+
+        batch.poses = centered_poses + pose_shifts
+        batch.labels = centered_labels + label_shifts
 
 
 # Applies a different random 3D rotation to each sample pair in the batch.

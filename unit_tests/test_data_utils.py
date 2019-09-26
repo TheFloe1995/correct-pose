@@ -1,3 +1,4 @@
+import os
 import torch
 
 from data_utils import datasets
@@ -138,24 +139,27 @@ def test_data_loader():
     assert torch.allclose(sum_of_subsets['sub2'], true_sum_sub2)
 
 
-def test_standard_distorter():
+def test_synthetic_distorter():
     config = {'stds': [3.0, 5.0, 10.0],
               'layer_probs': [0.7, 0.25, 0.05],
               'layer_radii': [0.0, 6.0, 7.0],
               'confusion_prob': 0.02}
     poses = torch.normal(torch.zeros(dataset_size, 21, 3), 3.0).cuda()
+    passed_poses = poses.clone()
 
     distorter = distorters.SyntheticDistorter(config)
-    distorted_poses = distorter(poses)
+    distorted_poses = distorter(passed_poses)
 
     assert poses.is_same_size(distorted_poses)
     assert not torch.allclose(poses, distorted_poses)
+    assert torch.allclose(poses, passed_poses)
+    assert distorted_poses.device == torch.device('cuda:0')
 
 
 def test_knn_predefined_distorter():
     config = {
-        'source_name': 'HANDS17_DPREN_SubjClust_train',
-        'knn_name': 'HANDS17_DPREN_SubjClust_train_labels_noshift_16',
+        'source_name': os.path.join('unit_test', 'dummy42'),
+        'knn_name': os.path.join('unit_test', 'dummy42'),
         'strength_alpha': -4.0,
         'strength_loc': 0.85,
         'strength_scale': 0.01,
@@ -168,13 +172,13 @@ def test_knn_predefined_distorter():
     }
     distorter = distorters.KNNPredefinedDistorter(config)
 
-    distort_dataset = datasets.PairedPoseDataset('HANDS17_DPREN_SubjClust_train', distorter, False,
-                                                 100, 'cuda:0')
-    no_distort_dataset = datasets.PairedPoseDataset('HANDS17_DPREN_SubjClust_train',
-                                                    distorters.NoDistorter(), True, 100, 'cuda:0')
+    distort_dataset = datasets.PairedPoseDataset(os.path.join('unit_test', 'dummy42'), distorter,
+                                                 False, device='cuda:0')
+    no_distort_dataset = datasets.PairedPoseDataset(os.path.join('unit_test', 'dummy42'),
+                                                    distorters.NoDistorter(), True, device='cuda:0')
 
     distort_batch = distort_dataset[:]
     no_distort_batch = no_distort_dataset[:]
 
-    torch.allclose(distort_batch.poses, no_distort_batch.poses)
-    torch.equal(distort_batch.labels, no_distort_batch.labels)
+    assert not torch.allclose(distort_batch.poses, no_distort_batch.poses)
+    assert torch.equal(distort_batch.labels, no_distort_batch.labels)

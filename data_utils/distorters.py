@@ -184,10 +184,8 @@ class KNNPredefinedDistorter(BaseDistorter):
         neighbor_distrib_probs = torch.linspace(100, 10, self.max_k)
         self.neighbor_distribution = distributions.Categorical(neighbor_distrib_probs)
 
-    def distort(self, poses, indices=None):
+    def distort(self, poses, indices=slice(None)):
         n_poses = len(poses)
-        if type(indices) is slice:
-            indices = range(n_poses)[indices]
         knn_indices = self.knn_indices[indices, :self.max_k].view(n_poses, -1)
         selection = self.neighbor_distribution.sample((n_poses,))
         distortion_indices = knn_indices[torch.arange(n_poses), selection]

@@ -1,3 +1,4 @@
+import os
 import torch
 
 import data_utils.normalization as norm
@@ -87,7 +88,7 @@ def test_compute_inplane_rot_mat():
     assert torch.allclose(rot_mats, true_rot_mats, atol=1e-6)
 
 
-def test_normalization():
+def test_individual_normalization():
     # The original hand's wrist is set to (0, 0, 0). All bones have length 2.
     # The thumb is pointing in negative z-direction and the pinky in positive z-direction. Their
     # z-components cancel each other in the center point calculation, which makes the rotation
@@ -157,27 +158,42 @@ def test_normalization():
 
 
 def test_normalization_batch_invariance():
-    dataset = SinglePoseDataset('MSRA15_val_poses')
-    dataset.select_subset('REN_9x6x6')
-    batch1 = dataset[[0, 4000, 8000]]
-    batch2 = dataset[[0, 4000]]
+    dataset = SinglePoseDataset(os.path.join('unit_test', 'dummy42_labels'))
+    batch1 = dataset[:3]
+    batch2 = dataset[:2]
 
-    normalized_poses1, normalization_params_1 = norm.IndividualNormalizer.normalize_single(
-        batch1.poses)
-    normalized_poses2, normalization_params_2 = norm.IndividualNormalizer.normalize_single(
-        batch2.poses)
+    normalized_poses1, norm_params_1 = norm.IndividualNormalizer.normalize_single(batch1.poses)
+    normalized_poses2, norm_params_2 = norm.IndividualNormalizer.normalize_single(batch2.poses)
 
-    assert torch.allclose(normalization_params_1['shift'][:2], normalization_params_2['shift'])
-    assert torch.allclose(normalization_params_1['scaling'][:2], normalization_params_2['scaling'])
-    assert torch.allclose(normalization_params_1['rotation'][:2], normalization_params_2['rotation'])
+    assert torch.allclose(norm_params_1['shift'][:2], norm_params_2['shift'])
+    assert torch.allclose(norm_params_1['scaling'][:2], norm_params_2['scaling'])
+    assert torch.allclose(norm_params_1['rotation'][:2], norm_params_2['rotation'])
     assert torch.allclose(normalized_poses1[:2], normalized_poses2)
 
 
-def test_normalization_loop():
-    batch = SinglePoseDataset('HANDS17_all_labels', num_samples=1000, device='cuda')[:]
+def test_individual_normalizer_loop():
+    batch = SinglePoseDataset(os.path.join('unit_test', 'dummy42_labels'), num_samples=1000,
+                              device='cuda')[:]
 
     normalized_poses, params = norm.IndividualNormalizer.normalize_single(batch.poses)
     denormalized_poses = norm.IndividualNormalizer.denormalize(normalized_poses, params)
 
     assert batch.poses.is_same_size(denormalized_poses)
     assert torch.allclose(denormalized_poses, batch.poses, atol=1e-2)
+
+
+def test_view_point_normalizer():
+    poses = torch.rand(42, 21, 3)
+    labels = torch.rand(42, 21, 3)
+
+    distance_errors_before = torch.norm(poses - labels, dim=2)
+    pose_centers_before = torch.mean(poses, dim=1)
+    rotated_poses, rotated_labels, params = norm.ViewPointNormalizer.normalize_pair(poses, labels)
+    denormalized_poses = norm.ViewPointNormalizer.denormalize(rotated_poses, params)
+
+    distance_errors_after = torch.norm(rotated_poses - rotated_labels, dim=2)
+    pose_centers_after = torch.mean(rotated_poses, dim=1)
+
+    assert torch.allclose(pose_centers_before, pose_centers_after)
+    assert torch.allclose(distance_errors_before, distance_errors_after)
+    assert torch.allclose(poses, denormalized_poses, atol=1e-2)
