@@ -128,6 +128,16 @@ class SyntheticDistorter(BaseDistorter):
         return distorted_joints
 
 
+class GaussianDistorter(BaseDistorter):
+    def __init__(self, config):
+        stats = torch.load(os.path.join('data', 'distortions', config['normal_stats_name'] + '.pt'))
+        self.distribution = torch.distributions.Normal(stats['means'], stats['stds'])
+
+    def distort(self, poses, indices=None):
+        distortions = self.distribution.sample((poses.shape[0], )).to(poses.device)
+        return poses + distortions
+
+
 # Distortions are not generated at runtime but loaded from a file where each sample can only have
 # a single associated distortion.
 # To add more randomness the distortion vectors are scaled by a randomly sampled strength factor.
