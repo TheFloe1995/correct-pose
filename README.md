@@ -1,14 +1,17 @@
 # Hand Pose Correction with PyTorch
 
-This repository contains code for my Master's thesis.
-**TODO**: Add title and possibly abstract or link.
+This repository contains code for my Master's thesis: 
+**Correcting 3D Hand Poses by Learning a Structural Prior with Graph Neural Networks**
 
 It's a PyTorch implementation, tested with version PyTorch 1.10 and Python 3.7.
-**TODO**: Adda requirements.txt or manually list required packages.
+Required packages:
+* PyTorch
+* Scipy
+* Matplotlib
 
 ## How to get started
 Training scripts are located in [run](run). Make sure to have the datasets available in the
-required format in [data](data). Mor details and scripts for generating data are located in 
+required format in [data](data). More details and scripts for generating data are located in 
 [data_utils](data_utils). Try to run the [minimal example script](run/minimal_example.py)
 first and check it out in detail.
 
